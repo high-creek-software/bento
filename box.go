@@ -5,7 +5,6 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"golang.org/x/exp/slices"
-	"log"
 )
 
 type Box struct {
@@ -36,7 +35,6 @@ func (b *Box) AddItem(i *Item) {
 	b.items = append(b.items, i)
 	i.closeAction = func() {
 		idx := slices.Index(b.items, i)
-		log.Println("Removing item:", idx)
 		b.items = slices.Delete(b.items, idx, idx+1)
 		b.Refresh()
 	}
@@ -59,6 +57,8 @@ func (b *boxRenderer) Layout(size fyne.Size) {
 		i.Resize(fyne.NewSize(maxWidth, iSize.Height))
 		i.Move(fyne.NewPos(size.Width/2-maxWidth/2, runningHeight-iSize.Height))
 		runningHeight -= theme.Padding() + iSize.Height
+		// Calling refresh here, as the item now has a size.  Before, the item would show the text along the left side, then the wrapper was too large, then it would be sized appropriately.
+		i.Refresh()
 	}
 }
 

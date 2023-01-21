@@ -33,11 +33,11 @@ type Item struct {
 }
 
 func (i *Item) CreateRenderer() fyne.WidgetRenderer {
-	messageLbl := widget.NewLabel(i.message)
+	messageLbl := widget.NewLabel("")
 	messageLbl.Wrapping = fyne.TextWrapWord
 	background := canvas.NewRectangle(i.backgroundColor)
+	background.Resize(fyne.NewSize(0, 0))
 	actionButton := widget.NewButton("Test", i.closeTapped)
-	//actionButton.Importance = widget.LowImportance
 	actionButton.Hide()
 	closeButton := widget.NewButton("X", i.closeTapped)
 	closeButton.Importance = widget.LowImportance
@@ -57,7 +57,6 @@ func (i *Item) closeTapped() {
 
 func (i *Item) SetBackgroundColor(c color.Color) {
 	i.backgroundColor = c
-	i.Refresh()
 }
 
 func (i *Item) AddAction(title string, action func()) {
@@ -133,7 +132,8 @@ func (i *itemRenderer) MinSize() fyne.Size {
 	}
 	closeSize := i.closeButton.MinSize()
 
-	return fyne.NewSize(messageSize.Width+actionSize.Width+closeSize.Width+4*theme.Padding(), fyne.Max(messageSize.Height, closeSize.Height)+2*theme.Padding())
+	size := fyne.NewSize(messageSize.Width+actionSize.Width+closeSize.Width+4*theme.Padding(), fyne.Max(messageSize.Height, closeSize.Height)+2*theme.Padding())
+	return size
 }
 
 func (i *itemRenderer) Objects() []fyne.CanvasObject {
@@ -145,8 +145,7 @@ func (i *itemRenderer) Objects() []fyne.CanvasObject {
 }
 
 func (i *itemRenderer) Refresh() {
-	i.messageLbl.Text = i.item.message
-	i.messageLbl.Refresh()
+	i.messageLbl.SetText(i.item.message)
 	i.background.FillColor = i.item.backgroundColor
 	i.background.Refresh()
 	if i.item.actionTitle != "" {
