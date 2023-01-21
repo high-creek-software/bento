@@ -5,6 +5,7 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"golang.org/x/exp/slices"
+	"time"
 )
 
 type Box struct {
@@ -34,11 +35,31 @@ func NewBox() *Box {
 func (b *Box) AddItem(i *Item) {
 	b.items = append(b.items, i)
 	i.closeAction = func() {
-		idx := slices.Index(b.items, i)
-		b.items = slices.Delete(b.items, idx, idx+1)
-		b.Refresh()
+		b.removeItem(i)
+	}
+	if i.length != LengthIndefinite {
+		duration := 2000 * time.Millisecond
+		if i.length == LengthLong {
+			duration = 4000 * time.Millisecond
+		}
+
+		go func() {
+			select {
+			case <-time.After(duration):
+				b.removeItem(i)
+			}
+		}()
 	}
 	b.Refresh()
+}
+
+func (b *Box) removeItem(i *Item) {
+	idx := slices.Index(b.items, i)
+	if idx != -1 {
+		b.items = slices.Delete(b.items, idx, idx+1)
+		b.Refresh()
+		i.Refresh() // Not sure why this is required, but the item stays on the screen if the item Refresh is not called
+	}
 }
 
 type boxRenderer struct {
