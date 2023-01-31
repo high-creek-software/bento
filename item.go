@@ -37,7 +37,7 @@ func (i *Item) CreateRenderer() fyne.WidgetRenderer {
 	messageLbl.Wrapping = fyne.TextWrapWord
 	background := canvas.NewRectangle(i.backgroundColor)
 	background.Resize(fyne.NewSize(0, 0))
-	actionButton := widget.NewButton("Test", i.closeTapped)
+	actionButton := widget.NewButton("", i.action)
 	actionButton.Hide()
 	closeButton := widget.NewButton("X", i.closeTapped)
 	closeButton.Importance = widget.LowImportance
@@ -55,6 +55,11 @@ func (i *Item) closeTapped() {
 	i.closeAction()
 }
 
+func (i *Item) action() {
+	i.closeAction()
+	i.actionAction()
+}
+
 func (i *Item) SetBackgroundColor(c color.Color) {
 	i.backgroundColor = c
 }
@@ -62,7 +67,6 @@ func (i *Item) SetBackgroundColor(c color.Color) {
 func (i *Item) AddAction(title string, action func()) {
 	i.actionTitle = title
 	i.actionAction = action
-	i.Refresh()
 }
 
 func newDefaultItem(length ItemLength) *Item {
@@ -98,12 +102,16 @@ func (i *itemRenderer) Destroy() {
 }
 
 func (i *itemRenderer) Layout(size fyne.Size) {
+	i.background.Resize(size)
+	i.background.Move(fyne.NewPos(0, 0))
+
 	messageSize := i.messageLbl.MinSize()
-	actionSize := fyne.NewSize(0, 0)
-	if i.actionButton.Visible() {
-		actionSize = i.actionButton.MinSize()
-	}
+	actionSize := i.actionButton.MinSize()
 	closeSize := i.closeButton.MinSize()
+
+	actionPos := fyne.NewPos(size.Width-theme.Padding()-closeSize.Width-theme.Padding()-actionSize.Width, theme.Padding())
+	i.actionButton.Move(actionPos)
+	i.actionButton.Resize(actionSize)
 
 	messagePos := fyne.NewPos(theme.Padding(), theme.Padding())
 	i.messageLbl.Move(messagePos)
@@ -112,15 +120,6 @@ func (i *itemRenderer) Layout(size fyne.Size) {
 	closePos := fyne.NewPos(size.Width-theme.Padding()-closeSize.Width, theme.Padding())
 	i.closeButton.Move(closePos)
 	i.closeButton.Resize(closeSize)
-
-	if i.actionButton.Visible() {
-		actionPos := closePos.SubtractXY(theme.Padding()+actionSize.Width, 0)
-		i.actionButton.Move(actionPos)
-		i.actionButton.Resize(actionSize)
-	}
-
-	i.background.Resize(size)
-	i.background.Move(fyne.NewPos(0, 0))
 
 }
 
@@ -151,7 +150,6 @@ func (i *itemRenderer) Refresh() {
 	if i.item.actionTitle != "" {
 		i.actionButton.Show()
 		i.actionButton.SetText(i.item.actionTitle)
-		i.actionButton.OnTapped = i.item.actionAction
 		i.actionButton.Refresh()
 	}
 }
